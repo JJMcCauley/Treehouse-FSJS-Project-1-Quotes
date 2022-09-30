@@ -13,7 +13,7 @@ project 1 - A Random Quote Generator
 
 const quotes = [
   {
-    quote: `The journey of a thousand miles begins with one step`,
+    quote: `The journey of a thousand miles begins with one step.`,
     source: `Lao Tzu`,
   },
   {
@@ -66,21 +66,23 @@ const quotes = [
     year: 1752
   }
 ]
+const recentlyUsedQuotes = [];
 
 /***
- * Timer Functions
+ * Timer Functions based on code from https://www.geeksforgeeks.org/how-to-call-a-function-repeatedly-every-5-seconds-in-javascript/
  ***/ 
 
 let timer;
 
 /**
- * Starts a timer to generate a quote after fifteen seconds
+ * Starts a timer to generate a quote after specified time
+ * @param {number} time Time in seconds the timer should wait before executing
  */
 
-function startTimer() {
+function startTimer( time ) {
     timer = setInterval(function() {
       printQuote();
-    }, 10000);
+    }, (time * 1000));
 }
 
 /**
@@ -91,11 +93,6 @@ function stopTimer() {
   clearInterval(timer);
 }
 
-
-/***
- * `getRandomQuote` function
-***/
-
 /**
  * Returns a random number in a range
  *
@@ -104,18 +101,41 @@ function stopTimer() {
  * @return {number} a random number between min and max
  */
 
-const randomNumberGenerator = (min, max) => {
-  return Math.floor(Math.random() * (max-min+1)+min)
+const randomNumberGenerator = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+/**
+ * Finds an index of an array that has not been used recently and returns it
+ * @param {number} max Represents the length of the array being checked
+ * @return {number} index of an array that has not been used recently
+ */
+const checkIfUsed = ( max ) => {
+  let index = randomNumberGenerator(0, max);
+  while (recentlyUsedQuotes.includes(index)) {
+    index = randomNumberGenerator(0, max);
+  }
+  recentlyUsedQuotes.push(index)
+  if (recentlyUsedQuotes.length >= 6) {
+    recentlyUsedQuotes.shift();
+  }
+  console.log(recentlyUsedQuotes)
+  return index;
 }
+
+/***
+ * `getRandomQuote` function
+***/
+
 
 /**
  * Returns a random quote from an array
  *
  * @param {array} arr The array a random quote will be pulled from
+ * @return {object} returns an quote object after it has been checked for recent use
  */
-let getRandomQuote = (arr) => {
+
+const getRandomQuote = (arr) => {
   let max = arr.length - 1;
-  return arr[randomNumberGenerator(0, max)];
+  return arr[checkIfUsed(max)];
 }
 
 
@@ -126,16 +146,24 @@ let getRandomQuote = (arr) => {
 const quoteContainer = document.querySelector('.container');
 
 /**
+ * Changes background color of body element to a randomly generated color
+ */
+
+const changeBGColor = () => {
+  let randomColor = `rgb(${randomNumberGenerator(0, 255)}, ${randomNumberGenerator(0, 255)}, ${randomNumberGenerator(0, 255)})`
+  document.querySelector('body').style.backgroundColor = randomColor;
+}
+
+/**
  * Prints quote to the page, changes background color, resets timer
  */
 const printQuote = () => {
   stopTimer()
-  let randomColor = `rgb(${randomNumberGenerator(0, 255)}, ${randomNumberGenerator(0, 255)}, ${randomNumberGenerator(0, 255)})`
-  document.querySelector('body').style.backgroundColor = randomColor;
+  changeBGColor();
   let quote = getRandomQuote(quotes);
   let html = `
     <div id="quote-box" class="quote-box">
-    <p class="quote">${quote.quote}.</p>
+    <p class="quote">${quote.quote}</p>
     <p class="source">${quote.source}
     `
   if (quote.actor !== undefined) {
@@ -158,7 +186,7 @@ const printQuote = () => {
   </div>
   `
   quoteContainer.innerHTML = html;
-  startTimer();
+  startTimer(8);
 }
 
 printQuote();
